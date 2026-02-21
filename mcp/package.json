@@ -1,0 +1,10 @@
+{
+    "name": "ai-workflow-mcp-servers",
+    "version": "1.0.0",
+    "type": "module",
+    "description": "Custom MCP servers for Jira, GitLab, and UI component library integration",
+    "dependencies": {
+        "@modelcontextprotocol/sdk": "^1.0.0",
+        "jsdom": "^25.0.0"
+    }
+}

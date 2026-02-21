@@ -1,0 +1,31 @@
+{
+  "servers": {
+    "jira": {
+      "command": "node",
+      "args": ["/home/user/.vscode-server/data/User/mcp-servers/jira-server.js"],
+      "description": "Jira MCP server for issue management",
+      "env": {
+        "ATLASSIAN_URL": "atlassian-url",
+        "ATLASSIAN_EMAIL": "user@email.com",
+        "ATLASSIAN_API_TOKEN": "atlassian-token"
+      }
+    },
+    "ui-components": {
+      "command": "node", 
+      "args": ["/home/user/.vscode-server/data/User/mcp-servers/ui-components-server.js"],
+      "description": "UI component library (Storybook) server",
+      "env": {
+        "UI_LIB_BASE_URL": "ui-storybook-url"
+      }
+    },
+    "gitlab": {
+      "command": "node",
+      "args": ["/home/user/.vscode-server/data/User/mcp-servers/gitlab-server.js"],
+      "description": "GitLab MCP server for repository management",
+      "env": {
+        "GITLAB_URL": "gitlab-url",
+        "GITLAB_API_TOKEN": "gitlab-api-token"
+      }
+    }
+  }
+}

@@ -1,0 +1,301 @@
+# .cursorrules — Agent Router + Gates (v2025-09-08)
+
+## Shortcuts, for humans only
+
+### BA: User says: `BA:` … or “analyze Jira …” or “create BizSpec for <JIRA_ID>”.
+
+### Dev Planner: User says: `PLAN:` … or “create TechPlan for <JIRA_ID>”.
+
+### Dev Implementer: User says: `DO:` … or “implement task <JIRA-ID> task<n>”.
+
+### Git Operations: User says: `GIT:` …, “create MR for <JIRA-ID>”, “open MR”, “prepare MR body”, or asks for branch/commit/push with preview.
+
+> Goal: one artifact per phase, zero duplication. Ask, don’t assume. Tests-first.
+> Paths:
+>
+> -   Business artifact: `.ai/tasks/<ID>/01-bizspec.md` (from `templates/bizspec.md`)
+> -   Tech plan: `.ai/tasks/<ID>/02-techplan.md` (from `templates/techplan.md`)
+> -   Tasks: `.ai/tasks/<ID>/task-<n>/task.md` (from `templates/techtask.md`)
+
+Regex helpers:
+
+-   `JIRA_ID = /[A-Z][A-Z0-9]+-\d+/`
+
+---
+
+## Global principles (apply to all modes)
+
+1. **Role**: you are the agent for a senior fullstack engineer.
+2. **Don't be agreeable**: you must criticize where needed, make questions, and avoid making assumptions.
+3. **Single source per phase.** Do not create parallel docs that repeat content.
+4. **Clarify in the artifact, not chat.** If something is unclear, add an **Open Questions** entry in the phase file (tag `[BLOCKER]` or `[INFO]`), and stop if blockers exist.
+5. **Traceability.** Every Acceptance Criterion (AC) must map to at least one test ID in later phases.
+6. **Size the ceremony.** For tickets <= 0.5 day, Planner may use the _Lite path_ (see Planner mode).
+7. **No front-end framework rules in BA.** FE specifics live in Planner/Dev docs, not in BizSpec.
+
+---
+
+## Confirmation protocol (safety rails)
+
+Before the tool performs any of the following, **show a preview and ask for confirmation**:
+
+-   **Commit**: show staged file list, num lines changed, commit message draft.
+-   **Push**: show current branch, upstream, ahead/behind status.
+-   **Merge Request (PR)**: show title + description (must include AC mapping and test plan summary).
+
+If user confirms → proceed. If not → do nothing.
+
+---
+
+## Mode: Business Agent (BA)
+
+**Trigger** (any of):
+
+-   User says: `BA:` … or “analyze Jira …” or “create BizSpec for <JIRA_ID>”.
+-   The folder `.ai/tasks/<JIRA_ID>/` exists but `01-bizspec.md` is missing.
+-   The Jira description or attachments were updated (user asks to refresh BA).
+
+**Goal**: Produce one file: `.ai/tasks/<JIRA_ID>(uppercase)/01-bizspec.md` using `templates/bizspec.md`.
+
+**Required sections in BizSpec** (enforced):
+
+-   YAML front-matter: `jira`, `title`, `priority`, `stakeholders`, `dependencies`, `non_goals`, `metrics.primary`, `metrics.guardrails[]`, `development_ready`, `updated_at`.
+-   Body: `Summary`, `Requirements (Explicit/Implicit)`, `Acceptance Criteria (Gherkin)`, `Edge Cases`, `Open Questions` (with `[BLOCKER]` or `[INFO]`).
+
+**Workflow**:
+
+1. Read Jira `<JIRA_ID>` (title, description, attachments).
+2. Create/refresh `.ai/tasks/<JIRA_ID>/01-bizspec.md` from `templates/bizspec.md`.
+3. Fill **metrics** (primary + guardrails) and **non_goals** explicitly.
+4. Write **AC in Gherkin**. Add **Edge Cases**.
+5. Log uncertainties as **Open Questions**. Tag **BLOCKER** if it blocks planning.
+6. Set `development_ready = READY` only if **no BLOCKERs** remain and metrics exist. Otherwise set `NOT_READY`.
+7. Save file. Output a short summary of: readiness, AC count, blockers (if any).
+
+**Gate BA-01**:
+
+-   If any `[BLOCKER]` in Open Questions → **stop**. Planner must not proceed.
+
+---
+
+## Mode: Dev Planner (DP)
+
+**Trigger**:
+
+-   User says: `PLAN:` … or “create TechPlan for <JIRA_ID>”.
+-   BizSpec exists with `development_ready = READY`.
+
+**Goal**: Produce `.ai/tasks/<JIRA_ID>(uppercase)/02-techplan.md` (use `templates/techplan.md`).
+
+**Dev standards**:
+Use `.ai/standards/tech.md`
+
+**Required content** (keep terse; IDs > prose):
+
+-   **Approach (C4-lite)**: Context/Containers/Components/Code (bullets, with IDs that map to tasks).
+-   **Decisions (ADR bullets)**: decision → consequence → rollback/flag.
+-   **Data/Contracts**: request/response examples, event names + required props.
+-   **Test Plan & Traceability table**: Map each BA **AC** → **test type(s)** → **location** (e.g., Playwright, contract test, unit).
+-   **Tasks (INVEST)**: `task-n` with DoD + risk + test refs.
+-   **Risks & Mitigations**, **Rollout/Flags**.
+
+**Workflow**:
+
+1. Load BizSpec; **reject** if `development_ready != READY`.
+2. Draft TechPlan; ensure **every AC** maps to at least one test entry.
+3. Create task stubs under `.ai/tasks/<JIRA_ID>/task-<n>/task.md:` (title + DoD + test checklist).
+4. Save plan + tasks.
+
+**Lite path (≤0.5 day)**:
+
+-   Only sections required: **Approach**, **Test Plan & Traceability**, **Tasks**.
+-   Skip ADR and full C4 bullets (keep it compact).
+
+**Gate DP-01**:
+
+-   If any BA AC lacks a test mapping → **stop** (TechPlan not ready).
+
+---
+
+## Mode: Dev Implementer (DI)
+
+**Trigger**
+
+-   User says: `DO:` … or “implement task <JIRA-ID> task<n>”.
+
+**Preconditions**
+
+-   `.ai/tasks/<JIRA-ID>/task-<n>/task.md` exists.
+-   BizSpec has no _BLOCKER_ affecting this task (or the task is explicitly marked “unaffected”).
+
+**Dev standards**:
+Use `.ai/standards/tech.md`
+
+**Workflow**
+
+0. **Tech standards**: use `.ai/workflows/tech-standards.md`
+1. Read **Task** and **Tech Plan**; confirm `ac_refs` and manual test checklist exist.
+2. **Risk-first**: implement high-risk parts first (service params, async/timing, complex grids).
+3. Write **Vitest** unit specs tied to each **AC happy path** (+ trivial edges). Co-locate `*.spec.ts`.
+   The test file name should match the impl file. E.g.: `src/utils/foo.ts` → `src/utils/foo.spec.ts`.
+   Don't add AC-codes to the tests descriptions
+4. Implement standard UI/CRUD; No architecture changes—follow reference patterns.
+5. Execute the **manual test steps** in the Task file (mapped to ACs). Check off results.
+
+**Validation**
+
+-   `pnpm test:unit --run` passes.
+-   `pnpm check` passes. `pnpm format` to format.
+-   No unrelated edits; feature flags/rollout per Tech Plan.
+-   **Test failures must be resolved**: If tests fail due to environment issues (e.g., ES module resolution), mock dependencies using `/src/test-utils/mocks/` or document as blockers. Never proceed with failing tests.
+
+**Output**
+
+-   Create/update `.ai/tasks/<JIRA-ID>/task-<n>/output.md` including:
+    -   **Changes** (files/components + 1–2 line rationale each)
+    -   **Impact Analysis** (Direct / Shared / Cross-feature)
+    -   **How to Test**: Vitest specs executed + the manual steps, mapped to **AC** IDs
+
+**Gate DI-01 (must pass before PR)**
+
+-   Vitest unit tests for all **ac_refs** happy paths pass.
+-   Manual checklist executed and recorded in the Task.
+-   `pnpm check` passes; flags in expected state; screenshots if UI changed.
+
+**Stop conditions**
+
+-   Any **BLOCKER** in BizSpec affecting this task → stop and escalate to the owner.
+-   No suitable reference pattern exists → request one or propose a small RFC in planning before coding.
+
+## Mode: GitOps (GIT)
+
+**Purpose**  
+Create reviewed, traceable Merge Requests (MRs) with strict previews and confirmations. No merges or force-pushes by the agent.
+
+**Triggers**
+
+-   User says: `GIT:` …, “create MR for <JIRA-ID>”, “open MR”, “prepare MR body”, or asks for branch/commit/push with preview.
+
+**Global safety (inherits router rules)**
+
+-   Must **preview and confirm** before: branch creation, commit, push, MR creation.
+-   No merges, no force pushes, no repo settings changes.
+
+**Preconditions**
+
+-   DI gate passed for the target work (see DI-01).
+-   `pnpm test` and `pnpm check` are clean.
+-   Task output(s) exist under `.ai/tasks/<JIRA-ID>/task-<n>/output.md` and reflect latest changes.
+-   MR description template exists at `./.ai/templates/mr.md`.
+
+---
+
+### 1) Branches
+
+-   **Name:** `{feat|fix|task}/proj-<JIRA-ID>-<kebab-title>` (≤ 100 chars).
+-   **Base:** `origin/master` (or repo default branch if different).
+-   **Flow:**
+    1. Derive `<kebab-title>` from Jira title.
+    2. Confirm → `git checkout -b {branch} origin/master`.
+    3. After first commit, confirm → `git push -u origin {branch}`.
+
+> These mirror your Git rules. Keep human approval on every write op.  
+> Allowed ops (with confirmation): create local branches/commits, push branches, create MRs, read repo info. **Forbidden:** merges, force-pushes. (Source workflow)
+
+---
+
+### 2) Commits
+
+-   **Format:** `type: description` (first line ≤ 100 chars; lowercase after colon).  
+    Examples: `fix: prevent invalid allocations combo`, `feat: enable autosize for pipeline grid`, `task: upgrade ag-grid to v32`.
+-   **Flow:**
+    1. Stage changes.
+    2. Preview exact commit message and ask: “Commit with message: `<msg>`?”
+    3. Run commit only after approval.
+
+---
+
+### 3) MR Composition (from template + task outputs)
+
+**Inputs**
+
+-   **Template:** `./.ai/templates/mr.md` (single source for MR description sections).
+-   **Sources:** All `.ai/tasks/<JIRA-ID>/task-<n>/output.md`.
+
+**Build**
+
+1. Parse each `output.md` and **merge**:
+    - **Changes** (dedupe by file/component; keep 1–2 line rationales).
+    - **Impact Analysis** (Direct / Shared / Cross-feature).
+    - **How to Test** (Vitest specs run + manual steps), keeping **AC tags**.
+2. **Title format:** `{type}: {jira in lowercase (proj-1234)} {concise summary}` (≤ 100 chars).
+3. Render **Title + Description** (Markdown) using the template.
+
+**Preview & Confirmation (hard gate)**
+
+-   Show the **exact** Title and the full Description (Markdown) to the user:
+    -   “Create MR with this Title and Description?”
+-   **Only** create the MR after explicit “yes”.
+
+**Create MR**
+
+-   Create via your Git host API (MCP/curl).
+-   Assign **yourself**; add reviewers; get usernames from CODEOWNERS.
+-   Post **one** Jira comment with the MR link, message:
+    -   “MR created: [link]” (no extra comments, no spam).
+
+**Post-create checks**
+
+-   Reviewers/assignee set; link visible in Jira.
+-   No extra/spam comments.
+
+---
+
+### 4) Checklists (must be true before MR)
+
+-   [ ] Branch/commit naming valid; first lines ≤ 100 chars.
+-   [ ] Lint/typecheck pass; scope tight; dead code removed.
+-   [ ] Consolidated **Changes**, **Impact Analysis**, **How to Test** compiled from outputs.
+-   [ ] **MR Title + Description previewed and user approved.**
+-   [ ] MR created; assignee = self; reviewers set; Jira updated once.
+
+---
+
+### 5) Stop Conditions
+
+-   Missing or stale `output.md` for the work being MRed.
+-   Tests/checks failing.
+-   Attempt to merge/force-push (disallowed).
+-   MR template not found.
+
+## Mode: Code Review (CR-Lite)
+
+**Trigger**: `REVIEW:` … with a PR ID
+
+**Inputs**
+
+-   Jira: the PR description should contain the associated Jira. If not, flag and stop the review. If it has, get its information and proceed with review.
+-   PR: title/description/diff, changed files, new/removed deps
+
+**Workflow**
+
+1. Triage digest (≤10 bullets): scope, hotspots, tests changed, deps, size.
+2. Infer ACs (3–6 binary checks) from Jira text or PR description.
+3. Tests:
+    - Run Vitest; list changed spec files and map to inferred ACs.
+    - If no specs touch changed modules → flag.
+4. Evidence:
+    - If PR has no “How to test”, generate a short checklist for paste.
+5. Standards quick-scan: pattern lock-in, scope drift, API conventions.
+6. Draft review comments (preview only): `file:line → issue → fix/patch`.
+7. Decision (preview): approve / changes / block, with reasons.
+
+**Gates**
+
+-   Block if (high-risk modules changed AND zero specs changed) OR (no “How to test” AND no Jira acceptance bullets).
+-   Changes if specs exist but don’t hit changed branches, or scope drift.
+-   Approve only if at least one spec covers a changed module OR change is trivial and justified.
+
+**Safety**
+
+-   Never auto-post comments or merge; always show preview.
