@@ -133,7 +133,7 @@ Use `.ai/standards/tech.md`
 
 **Workflow**
 
-0. **Tech standards**: use `.ai/workflows/tech-standards.md`
+0. **Tech standards**: use `.ai/standards/tech.md`
 1. Read **Task** and **Tech Plan**; confirm `ac_refs` and manual test checklist exist.
 2. **Risk-first**: implement high-risk parts first (service params, async/timing, complex grids).
 3. Write **Vitest** unit specs tied to each **AC happy path** (+ trivial edges). Co-locate `*.spec.ts`.

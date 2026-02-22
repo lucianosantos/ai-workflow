@@ -1,4 +1,4 @@
-## 1) About — the objective
+## 1) About the workflow
 
 AI becomes more powerful each time we talk about it.
 
@@ -120,11 +120,127 @@ Now mixing everything together, we can:
 
 That’s the loop. Small tasks, clean handoffs, clear outputs.
 
-### **Setup**
+### **Setup — Quick Start**
 
-Place .ai folder in project's root.
+Follow these steps to integrate the AI workflow into your project.
 
-Use the mcp files in mcp folder, there is a README about it.
+#### Prerequisites
+
+-   **Editor**: VS Code (with Copilot / agent mode) or Cursor.
+-   **Node.js** ≥ 18 (for MCP servers).
+-   **Accounts & tokens** (for the MCP servers you plan to use):
+    -   **Jira**: Atlassian URL, email, and [API token](https://id.atlassian.com/manage-profile/security/api-tokens).
+    -   **GitLab**: instance URL and [personal access token](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html).
+    -   **UI Components (Storybook)**: URL of your running Storybook instance.
+
+#### 1. Copy the `.ai` folder into your project root
+
+```
+your-project/
+├── .ai/
+│   ├── standards/       # Your team's code standards (tech, core, crud, api-and-mocks, dev-playbook)
+│   ├── templates/       # Templates for bizspec, techplan, techtask, output, and MR description
+│   └── tasks/           # Created at runtime — one subfolder per Jira ticket
+├── .cursorrules         # Agent router: defines modes, triggers, gates, and safety rails
+└── src/
+```
+
+Copy `.ai/` and `.cursorrules` from this repo into **your project's root**. Then customize:
+
+-   **`.ai/standards/`** — update the files to reflect your team's stack, patterns, and conventions.
+-   **`.ai/templates/`** — adjust templates if your PR format, test tooling, or task structure differs.
+-   **`.cursorrules`** — review the mode triggers and adapt branch naming, commit format, and gate rules to your workflow.
+
+#### 2. Install and configure MCP servers
+
+The `mcp/` folder contains three custom MCP servers (Jira, GitLab, UI Components). Install their dependencies:
+
+```bash
+cd mcp
+npm install
+```
+
+Then copy the server `.js` files to a location your editor can reach. The default path in `mcp.json` assumes `~/.vscode-server/data/User/mcp-servers/` — adjust it to match your OS:
+
+| OS      | Suggested path                                                |
+| ------- | ------------------------------------------------------------- |
+| Linux   | `~/.vscode-server/data/User/mcp-servers/`                     |
+| macOS   | `~/Library/Application Support/Code/User/mcp-servers/`        |
+| Windows | `%APPDATA%\Code\User\mcp-servers\`                            |
+
+```bash
+# Example (Linux/macOS):
+mkdir -p ~/.vscode-server/data/User/mcp-servers
+cp mcp/*.js ~/.vscode-server/data/User/mcp-servers/
+```
+
+#### 3. Register MCP servers in your editor
+
+**VS Code** — create or edit `~/.vscode-server/data/User/mcp.json` (or the equivalent path for your OS). Paste the contents of `mcp/mcp.json` and replace the placeholder values with your real credentials:
+
+```jsonc
+{
+  "servers": {
+    "jira": {
+      "command": "node",
+      "args": ["<path-to>/mcp-servers/jira-server.js"],
+      "env": {
+        "ATLASSIAN_URL": "https://your-org.atlassian.net",
+        "ATLASSIAN_EMAIL": "you@company.com",
+        "ATLASSIAN_API_TOKEN": "your-jira-token"
+      }
+    },
+    "gitlab": {
+      "command": "node",
+      "args": ["<path-to>/mcp-servers/gitlab-server.js"],
+      "env": {
+        "GITLAB_URL": "https://gitlab.your-org.com",
+        "GITLAB_API_TOKEN": "your-gitlab-token"
+      }
+    },
+    "ui-components": {
+      "command": "node",
+      "args": ["<path-to>/mcp-servers/ui-components-server.js"],
+      "env": {
+        "UI_LIB_BASE_URL": "https://your-storybook.example.com"
+      }
+    }
+  }
+}
+```
+
+> **Cursor** users: add the same server entries in Cursor's MCP settings (Settings → MCP).
+
+**Optional but recommended**: add [Context7 MCP](https://github.com/upstash/context7) for up-to-date library documentation lookups.
+
+#### 4. Verify it works
+
+Restart your editor, open your project, and run a quick smoke test:
+
+1. Open a **new chat** with the agent.
+2. Type `BA: analyze PROJ-123` (replace with a real Jira key).
+3. The agent should fetch the Jira issue via MCP and begin drafting a BizSpec.
+
+If the agent can't reach Jira, check:
+-   MCP server paths in `mcp.json` point to the actual `.js` files.
+-   Environment variables (URL, email, token) are correct.
+-   Node.js ≥ 18 is available in your system PATH.
+
+#### 5. Day-to-day usage (the loop)
+
+Once set up, the workflow is driven by **chat commands** (shortcuts defined in `.cursorrules`):
+
+| Command | Mode | What it does | Output |
+| --- | --- | --- | --- |
+| `BA: <JIRA-ID>` | Business Analysis | Reads Jira, writes acceptance criteria + open questions | `.ai/tasks/<ID>/01-bizspec.md` |
+| `PLAN: <JIRA-ID>` | Dev Planner | Creates tech plan, splits into INVEST tasks with test mappings | `.ai/tasks/<ID>/02-techplan.md` + `task-<n>/task.md` |
+| `DO: <JIRA-ID> task<n>` | Dev Implementer | Implements one task, writes tests, documents how to verify | `task-<n>/output.md` + code |
+| `GIT: <JIRA-ID>` | Git Ops | Assembles PR from outputs, previews, creates MR on approval | MR + Jira comment |
+| `REVIEW: <PR-ID>` | Code Review | Triages a PR against Jira ACs and test coverage | Review comments (preview only) |
+
+Each mode has **gates** — the agent won't proceed to the next phase if the current one has blockers. This keeps the pipeline honest.
+
+> **Tip**: start a **new chat for each command/task**. Long chats degrade agent quality. Bring only the minimal context (Jira ID, relevant file paths).
 
 ---
 
