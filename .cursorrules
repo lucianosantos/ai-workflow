@@ -2,20 +2,20 @@
 
 ## Shortcuts, for humans only
 
-### BA: User says: `BA:` … or “analyze Jira …” or “create BizSpec for <JIRA_ID>”.
+### BA: User says: `BA:` … or "analyze Jira …" or "create BizSpec for `<JIRA_ID>`".
 
-### Dev Planner: User says: `PLAN:` … or “create TechPlan for <JIRA_ID>”.
+### Dev Planner: User says: `PLAN:` … or "create TechPlan for `<JIRA_ID>`".
 
-### Dev Implementer: User says: `DO:` … or “implement task <JIRA-ID> task<n>”.
+### Dev Implementer: User says: `DO:` … or "implement `<JIRA-ID> task<n>`".
 
-### Git Operations: User says: `GIT:` …, “create MR for <JIRA-ID>”, “open MR”, “prepare MR body”, or asks for branch/commit/push with preview.
+### Git Operations: User says: `GIT:` …, "create MR for `<JIRA-ID>`", "open MR", "prepare MR body", or asks for branch/commit/push with preview.
 
 > Goal: one artifact per phase, zero duplication. Ask, don’t assume. Tests-first.
 > Paths:
 >
-> -   Business artifact: `.ai/tasks/<ID>/01-bizspec.md` (from `templates/bizspec.md`)
-> -   Tech plan: `.ai/tasks/<ID>/02-techplan.md` (from `templates/techplan.md`)
-> -   Tasks: `.ai/tasks/<ID>/task-<n>/task.md` (from `templates/techtask.md`)
+> -   Business artifact: `.ai/tasks/<JIRA_ID>/01-bizspec.md` (from `templates/bizspec.md`)
+> -   Tech plan: `.ai/tasks/<JIRA_ID>/02-techplan.md` (from `templates/techplan.md`)
+> -   Tasks: `.ai/tasks/<JIRA_ID>/task-<n>/task.md` (from `templates/techtask.md`)
 
 Regex helpers:
 
@@ -51,8 +51,7 @@ If user confirms → proceed. If not → do nothing.
 
 **Trigger** (any of):
 
--   User says: `BA:` … or “analyze Jira …” or “create BizSpec for <JIRA_ID>”.
--   The folder `.ai/tasks/<JIRA_ID>/` exists but `01-bizspec.md` is missing.
+-   User says: `BA:` … or "analyze Jira …" or "create BizSpec for `<JIRA_ID>`".
 -   The Jira description or attachments were updated (user asks to refresh BA).
 
 **Goal**: Produce one file: `.ai/tasks/<JIRA_ID>(uppercase)/01-bizspec.md` using `templates/bizspec.md`.
@@ -82,7 +81,7 @@ If user confirms → proceed. If not → do nothing.
 
 **Trigger**:
 
--   User says: `PLAN:` … or “create TechPlan for <JIRA_ID>”.
+-   User says: `PLAN:` … or "create TechPlan for `<JIRA_ID>`".
 -   BizSpec exists with `development_ready = READY`.
 
 **Goal**: Produce `.ai/tasks/<JIRA_ID>(uppercase)/02-techplan.md` (use `templates/techplan.md`).
@@ -121,11 +120,11 @@ Use `.ai/standards/tech.md`
 
 **Trigger**
 
--   User says: `DO:` … or “implement task <JIRA-ID> task<n>”.
+-   User says: `DO:` … or "implement `<JIRA-ID> task<n>`".
 
 **Preconditions**
 
--   `.ai/tasks/<JIRA-ID>/task-<n>/task.md` exists.
+-   `.ai/tasks/<JIRA_ID>/task-<n>/task.md` exists.
 -   BizSpec has no _BLOCKER_ affecting this task (or the task is explicitly marked “unaffected”).
 
 **Dev standards**:
@@ -174,7 +173,7 @@ Create reviewed, traceable Merge Requests (MRs) with strict previews and confirm
 
 **Triggers**
 
--   User says: `GIT:` …, “create MR for <JIRA-ID>”, “open MR”, “prepare MR body”, or asks for branch/commit/push with preview.
+-   User says: `GIT:` …, "create MR for `<JIRA-ID>`", "open MR", "prepare MR body", or asks for branch/commit/push with preview.
 
 **Global safety (inherits router rules)**
 
