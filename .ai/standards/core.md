@@ -1,14 +1,15 @@
+````markdown
 # Technical Standards
 
 > Architecture, coding, and quality standards
 
 ## 🏗 Architecture
 
--   SPA with feature-based organization
--   UI library components (no vanilla HTML)
--   Type-safe API comms, centralized error handling
--   Mock-first backend dev
--   Code generation preserved (never edit @hygen anchors)
+- SPA with feature-based organization
+- Design system components (no vanilla HTML)
+- Type-safe API comms, centralized error handling
+- Mock-first backend dev
+- Code generation preserved (never edit generated anchors)
 
 ---
 
@@ -24,20 +25,137 @@ src/
 
 ## 🎨 Component Standards
 
--   **UI library-first**: use your design system components (buttons, inputs, grids, etc.)
--   **Research Method**: ALWAYS use UI lib MCP (`mcp_ui-components_*`) for component documentation
--   **NEVER**: grep `node_modules` or read source files for component API
--   Use design tokens, not hardcoded styles
--   Responsive by default
--   Accessibility: ARIA + keyboard navigation
+- **Design system-first**: use your component library (buttons, inputs, grids, etc.)
+- **Research Method**: use your UI library MCP or docs for component API reference
+- **NEVER**: grep node_modules for component source files to learn the API
+- Use design tokens, not hardcoded styles
+- Responsive by default
+- Accessibility: ARIA + keyboard navigation
 
 ---
 
-## 🔧 Libs you commonly use Standards
+## 🔧 AG-Grid Standards
 
-### Standard 1
-### Standard 2
-### Standard 3
+Priority order:
+
+1. GridOptions
+2. defaultColDef
+3. columnDefs
+4. API calls (last resort)
+
+Column sizing:
+
+- Content → minWidth (autosize)
+- Utility → fixed width
+- Grouped/dynamic → autosize on visibility events
+
+❌ Avoid: setTimeout hacks, imperative sizing on mounted
+
+### Service Patterns
+
+**Reactive Parameters:**
+
+```typescript
+// ✅ Correct: Manual execute with current values
+const getData = () => execute({ param: reactiveParam.value });
+
+// ❌ Wrong: execute() uses stale captured values
+const { execute } = service.get({ params: { param: ref.value } });
+execute(); // Uses old value
+```
+
+**Post-Operation Grid:**
+
+```typescript
+// ✅ Reliable row operations after data updates
+await nextTick(); // Grid processing time
+gridApi.forEachNode(node => { if (node.data?.id === id) /* operate */ });
+// ❌ getRowNode(id) fails immediately after updates
+```
+
+### Vue Reactivity Patterns
+
+**Prefer `computed` over `watch` for derived state:**
+
+```typescript
+// ✅ Correct: Computed for transforming/deriving data
+const lookupMap = computed(() => {
+  if (!dataList.value) return new Map();
+  return new Map(dataList.value.map((item) => [item.key, item.value]));
+});
+
+// ❌ Wrong: Watch for simple transformations
+const lookupMap = ref(new Map());
+watch(
+  dataList,
+  (data) => {
+    lookupMap.value = new Map(data.map((item) => [item.key, item.value]));
+  },
+  { immediate: true }
+);
+```
+
+**Use `watch` only for side effects:**
+
+```typescript
+// ✅ Correct: Watch for side effects (logging, API calls, DOM updates)
+watch(selectedId, async (id) => {
+  await logActivity(id);
+  highlightElement(id);
+});
+
+// ✅ Correct: Watch when you need old/new values
+watch(filters, (newFilters, oldFilters) => {
+  if (newFilters.date !== oldFilters.date) {
+    trackFilterChange();
+  }
+});
+```
+
+---
+
+## 🗂 Data Fetching Patterns
+
+**Parent-Child Responsibility:**
+
+```typescript
+// ✅ Page/Parent: Data fetching layer
+// src/pages/dashboard.vue
+const { data: userData } = service.getUsers();
+const { data: ordersData } = service.getOrders();
+
+<UserGrid :users="userData" :orders="ordersData" />
+
+// ✅ Component/Child: Presentation layer
+// src/components/UserGrid.vue
+interface Props {
+  users: User[] | undefined;
+  orders: Order[] | undefined;
+}
+const props = defineProps<Props>();
+```
+
+**When to colocate requests:**
+
+- ✅ Group related service calls in parent (e.g., user data + user preferences)
+- ✅ Keep requests together when they share filtering params
+- ❌ Don't force grouping if it breaks encapsulation (e.g., deeply nested features)
+- ❌ Don't duplicate requests across multiple parents
+
+**Service call organization:**
+
+```typescript
+// ✅ Related requests grouped logically
+const filterParams = useFilterParams(appliedFilters);
+
+// All dashboard data requests together
+const { data: summaryData } = service.getSummary({ params: filterParams });
+const { data: detailData } = service.getDetails({ params: filterParams });
+const { data: metadataData } = service.getMetadata();
+
+// Unrelated feature requests separate
+const { data: notifications } = service.getNotifications();
+```
 
 ---
 
@@ -45,43 +163,43 @@ src/
 
 **DRY**: Extract shared logic, no copy-paste  
 **KISS**: Prefer simple, readable solutions  
-**YAGNI**: Only build what’s needed
+**YAGNI**: Only build what's needed
 
 ---
 
 ## 💎 Code Quality
 
--   Extract shared logic into composables
--   Type safety: no `any`, typed props/events/interfaces
--   Self-documenting names > comments
+- Extract shared logic into composables
+- Type safety: no `any`, typed props/events/interfaces
+- Self-documenting names > comments
 
 ---
 
 ## 🧪 Testing
 
--   Start now with **Vitest unit tests** for the critical paths touched by the task.
--   **Manual test steps** must be documented in the Task file and mapped to BA **AC** IDs.
--   Aim for at least one **unit test per AC happy path**, plus easy edge cases.
--   Use **MSW** (or equivalent) to mock API calls inside unit tests when needed.
--   No e2e/contract tests for now; leave placeholders in TechPlan for future upgrade.
--   Keep **regression steps** (manual) documented.
+- Start now with **Vitest unit tests** for the critical paths touched by the task.
+- **Manual test steps** must be documented in the Task file and mapped to BA **AC** IDs.
+- Aim for at least one **unit test per AC happy path**, plus easy edge cases.
+- Use **MSW** (or equivalent) to mock API calls inside unit tests when needed.
+- No e2e/contract tests for now; leave placeholders in TechPlan for future upgrade.
+- Keep **regression steps** (manual) documented.
 
 ---
 
 ## ⚡ Performance
 
--   Bundle: code-split, tree-shake, lazy-load
--   Runtime: use computed, avoid heavy watchers
--   Measure bundle size & runtime perf
+- Bundle: code-split, tree-shake, lazy-load
+- Runtime: use computed, avoid heavy watchers
+- Measure bundle size & runtime perf
 
 ---
 
 ## 🔒 Security
 
--   Validate/sanitize inputs
--   No secrets in logs
--   Respect auth/permissions
--   Prevent XSS, CSRF, SQLi
+- Validate/sanitize inputs
+- No secrets in logs
+- Respect auth/permissions
+- Prevent XSS, CSRF, SQLi
 
 ---
 
@@ -89,15 +207,15 @@ src/
 
 ✅ Allowed:
 
--   Complex business logic
--   Regulatory / vendor bug notes
--   Performance constraints
--   Workarounds
+- Complex business logic
+- Regulatory / vendor bug notes
+- Performance constraints
+- Workarounds
 
 ❌ Forbidden:
 
--   Narrative/obvious descriptions
--   Commented-out code
+- Narrative/obvious descriptions
+- Commented-out code
 
 ---
 
@@ -105,8 +223,10 @@ src/
 
 ❌ Reject immediately if:
 
--   Dead code left in place
--   Narrative comments present
--   Vanilla HTML instead of UI library components
--   Scope violations (unrelated changes)
--   Built-in options ignored for custom hacks
+- Dead code left in place
+- Narrative comments present
+- Vanilla HTML instead of design system components
+- Scope violations (unrelated changes)
+- Built-in options ignored for custom hacks
+
+````
