@@ -1,40 +1,41 @@
-````markdown
 # Technical Standards
 
 > Architecture, coding, and quality standards
 
-## 🏗 Architecture
+## Architecture
 
 - SPA with feature-based organization
-- Design system components (no vanilla HTML)
+- Shared component library first (no vanilla HTML by default)
 - Type-safe API comms, centralized error handling
 - Mock-first backend dev
-- Code generation preserved (never edit generated anchors)
+- Code generation preserved (never edit generated anchors or generated sections unless the workflow explicitly requires it)
 
 ---
 
-## 📂 File Organization
+## File Organization
 
+```text
 src/
 ├── components/{feature}/
 ├── composables/
 ├── pages/
 └── types/
+```
 
 ---
 
-## 🎨 Component Standards
+## Component Standards
 
-- **Design system-first**: use your component library (buttons, inputs, grids, etc.)
-- **Research Method**: use your UI library MCP or docs for component API reference
-- **NEVER**: grep node_modules for component source files to learn the API
+- **Design-system-first**: use your shared component library (buttons, inputs, grids, etc.)
+- **Research Method**: ALWAYS use approved docs or MCP sources for component documentation
+- **NEVER**: grep `node_modules` or library source files as your primary component API reference
 - Use design tokens, not hardcoded styles
 - Responsive by default
 - Accessibility: ARIA + keyboard navigation
 
 ---
 
-## 🔧 AG-Grid Standards
+## AG-Grid Standards
 
 Priority order:
 
@@ -45,21 +46,21 @@ Priority order:
 
 Column sizing:
 
-- Content → minWidth (autosize)
-- Utility → fixed width
-- Grouped/dynamic → autosize on visibility events
+- Content -> minWidth (autosize)
+- Utility -> fixed width
+- Grouped/dynamic -> autosize on visibility events
 
-❌ Avoid: setTimeout hacks, imperative sizing on mounted
+Avoid: `setTimeout` hacks, imperative sizing on mounted
 
 ### Service Patterns
 
 **Reactive Parameters:**
 
 ```typescript
-// ✅ Correct: Manual execute with current values
+// Correct: Manual execute with current values
 const getData = () => execute({ param: reactiveParam.value });
 
-// ❌ Wrong: execute() uses stale captured values
+// Wrong: execute() uses stale captured values
 const { execute } = service.get({ params: { param: ref.value } });
 execute(); // Uses old value
 ```
@@ -67,10 +68,10 @@ execute(); // Uses old value
 **Post-Operation Grid:**
 
 ```typescript
-// ✅ Reliable row operations after data updates
+// Reliable row operations after data updates
 await nextTick(); // Grid processing time
-gridApi.forEachNode(node => { if (node.data?.id === id) /* operate */ });
-// ❌ getRowNode(id) fails immediately after updates
+gridApi.forEachNode((node) => { if (node.data?.id === id) /* operate */ });
+// `getRowNode(id)` often fails immediately after updates
 ```
 
 ### Vue Reactivity Patterns
@@ -78,13 +79,13 @@ gridApi.forEachNode(node => { if (node.data?.id === id) /* operate */ });
 **Prefer `computed` over `watch` for derived state:**
 
 ```typescript
-// ✅ Correct: Computed for transforming/deriving data
+// Correct: Computed for transforming/deriving data
 const lookupMap = computed(() => {
   if (!dataList.value) return new Map();
   return new Map(dataList.value.map((item) => [item.key, item.value]));
 });
 
-// ❌ Wrong: Watch for simple transformations
+// Wrong: Watch for simple transformations
 const lookupMap = ref(new Map());
 watch(
   dataList,
@@ -98,13 +99,13 @@ watch(
 **Use `watch` only for side effects:**
 
 ```typescript
-// ✅ Correct: Watch for side effects (logging, API calls, DOM updates)
+// Correct: Watch for side effects (logging, API calls, DOM updates)
 watch(selectedId, async (id) => {
   await logActivity(id);
   highlightElement(id);
 });
 
-// ✅ Correct: Watch when you need old/new values
+// Correct: Watch when you need old/new values
 watch(filters, (newFilters, oldFilters) => {
   if (newFilters.date !== oldFilters.date) {
     trackFilterChange();
@@ -114,19 +115,19 @@ watch(filters, (newFilters, oldFilters) => {
 
 ---
 
-## 🗂 Data Fetching Patterns
+## Data Fetching Patterns
 
 **Parent-Child Responsibility:**
 
 ```typescript
-// ✅ Page/Parent: Data fetching layer
+// Page/Parent: Data fetching layer
 // src/pages/dashboard.vue
 const { data: userData } = service.getUsers();
 const { data: ordersData } = service.getOrders();
 
 <UserGrid :users="userData" :orders="ordersData" />
 
-// ✅ Component/Child: Presentation layer
+// Component/Child: Presentation layer
 // src/components/UserGrid.vue
 interface Props {
   users: User[] | undefined;
@@ -137,20 +138,20 @@ const props = defineProps<Props>();
 
 **When to colocate requests:**
 
-- ✅ Group related service calls in parent (e.g., user data + user preferences)
-- ✅ Keep requests together when they share filtering params
-- ❌ Don't force grouping if it breaks encapsulation (e.g., deeply nested features)
-- ❌ Don't duplicate requests across multiple parents
+- Group related service calls in parent (e.g., user data + user preferences)
+- Keep requests together when they share filtering params
+- Don't force grouping if it breaks encapsulation (e.g., deeply nested features)
+- Don't duplicate requests across multiple parents
 
 **Service call organization:**
 
 ```typescript
-// ✅ Related requests grouped logically
-const filterParams = useFilterParams(appliedFilters);
+// Related requests grouped logically
+const filteringMetadata = useFilteringMetadata(appliedFilters);
 
-// All dashboard data requests together
-const { data: summaryData } = service.getSummary({ params: filterParams });
-const { data: detailData } = service.getDetails({ params: filterParams });
+// Feature data requests together
+const { data: summaryData } = service.getSummary({ params: filteringMetadata });
+const { data: detailData } = service.getDetails({ params: filteringMetadata });
 const { data: metadataData } = service.getMetadata();
 
 // Unrelated feature requests separate
@@ -159,23 +160,24 @@ const { data: notifications } = service.getNotifications();
 
 ---
 
-## 🧱 Principles
+## Principles
 
-**DRY**: Extract shared logic, no copy-paste  
-**KISS**: Prefer simple, readable solutions  
+**DRY**: Extract shared logic, no copy-paste
+**KISS**: Prefer simple, readable solutions
 **YAGNI**: Only build what's needed
 
 ---
 
-## 💎 Code Quality
+## Code Quality
 
 - Extract shared logic into composables
 - Type safety: no `any`, typed props/events/interfaces
 - Self-documenting names > comments
+- When implementing changes, always cleanup the code, do not leave dead code
 
 ---
 
-## 🧪 Testing
+## Testing
 
 - Start now with **Vitest unit tests** for the critical paths touched by the task.
 - **Manual test steps** must be documented in the Task file and mapped to BA **AC** IDs.
@@ -186,7 +188,7 @@ const { data: notifications } = service.getNotifications();
 
 ---
 
-## ⚡ Performance
+## Performance
 
 - Bundle: code-split, tree-shake, lazy-load
 - Runtime: use computed, avoid heavy watchers
@@ -194,7 +196,7 @@ const { data: notifications } = service.getNotifications();
 
 ---
 
-## 🔒 Security
+## Security
 
 - Validate/sanitize inputs
 - No secrets in logs
@@ -203,30 +205,28 @@ const { data: notifications } = service.getNotifications();
 
 ---
 
-## 📝 Comment Policy
+## Comment Policy
 
-✅ Allowed:
+Allowed:
 
 - Complex business logic
 - Regulatory / vendor bug notes
 - Performance constraints
 - Workarounds
 
-❌ Forbidden:
+Forbidden:
 
 - Narrative/obvious descriptions
 - Commented-out code
 
 ---
 
-## ⚠️ Blockers
+## Blockers
 
-❌ Reject immediately if:
+Reject immediately if:
 
 - Dead code left in place
 - Narrative comments present
-- Vanilla HTML instead of design system components
+- Vanilla HTML instead of shared component patterns
 - Scope violations (unrelated changes)
 - Built-in options ignored for custom hacks
-
-````

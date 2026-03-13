@@ -1,31 +1,35 @@
 ---
-schema: ai/ba@1
-jira: <JIRA-ID>
+schema: ai/ba@2
+jira: <TICKET-ID>
+title: "<Ticket title>"
+priority: <Critical|High|Medium|Low>
+stakeholders: ["<role or name>"]
+dependencies: ["<TICKET-ID or description>"]
 developmentReady: <NOT_READY|NEEDS_ANALYSIS|READY>
-non_goals: [<out-of-scope>]
+non_goals: ["<out-of-scope item>"]
 metrics:
-  primary: "<e.g., +X% completion>"
-  guardrails: ["<e.g., error rate ≤ Y%>", "<CLS unchanged>"]
-updatedAt: { now:<ISO8601> }
+  primary: "<measurable outcome>"
+  guardrails: ["<risk guardrail>", "<quality guardrail>"]
+updatedAt: <ISO8601>
 ---
 
 ## Summary
 
-<short description of the issue>
+<short description of the problem or change>
 
-## Data Model & Assumptions
+## Data Model And Assumptions
 
-> **Note:** Fill this section if the ticket involves API integration. Reference `.ai/standards/data-model-checklist.md` for guidance.
+> Fill this section for API or data-heavy work. Reference `.ai/standards/data-model-checklist.md`.
 
-**API Endpoint(s):** <endpoint name(s), e.g., `get_items`>
+**API Endpoint(s):** <endpoint name(s), e.g. `get_entity_attributes`>
 
-**Data Granularity:** <What level does the API return data? e.g., "Row per detail item" vs "Row per entity">
+**Data Granularity:** <e.g. "one row per detail record" vs "one row per entity">
 
-**One-to-Many Relationships:** <Any 1:N relationships? e.g., "One parent → many children">
+**One-To-Many Relationships:** <e.g. "one entity -> many detail records">
 
-**Duplicate Keys Expected:** <Can the same ID/key appear multiple times? e.g., "Yes - entity_id repeats per detail type">
+**Duplicate Keys Expected:** <e.g. "yes - entity_id may repeat per detail_type">
 
-**Aggregation/Deduplication Needed:** <Yes/No. If yes, briefly describe strategy or add to Open Questions>
+**Aggregation/Deduplication Needed:** <yes/no and brief note>
 
 ## Explicit Requirements
 
@@ -49,5 +53,5 @@ updatedAt: { now:<ISO8601> }
 
 ## Open Questions
 
-- OQ-1: ...
-- OQ-2: ...
+- [BLOCKER] OQ-1: ...
+- [INFO] OQ-2: ...

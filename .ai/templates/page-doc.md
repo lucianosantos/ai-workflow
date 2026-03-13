@@ -34,7 +34,7 @@
 **Business Logic:** [List composables used]  
 **APIs:** [List API calls]
 
-[Repeat for each major workflow]
+[Repeat for each workflow]
 
 ---
 
@@ -55,10 +55,10 @@
 
 ```
 [Simple flow diagram or description]
-User Action → Composable → API → Backend
-                ↓
+User Action -> Composable -> API -> Backend
+                |
          Update State
-                ↓
+                |
          Component Re-renders
 ```
 
@@ -139,7 +139,7 @@ All endpoints prefixed with JSON-RPC method names.
 
 ## Patterns to Reuse
 
-### ✅ [Pattern Name]
+### [Pattern Name]
 
 **When to use:** [Trigger/scenario for using this pattern]
 
@@ -166,7 +166,7 @@ All endpoints prefixed with JSON-RPC method names.
 
 ### E2E Tests
 
-**Location:** [cypress/e2e/feature-\*.cy.ts](../../../cypress/e2e/)
+**Location:** [cypress/e2e/feature-*.cy.ts](../../../cypress/e2e/)
 
 **Scenarios:**
 

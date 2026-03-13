@@ -31,7 +31,7 @@ Exact scope for this task. State what **is** and **is not** included.
   - [ ] Reactive state changes (if composables/computed)
 - **Data structure edges** (if integrating APIs):
   - [ ] Duplicate IDs/keys with conflicting values
-  - [ ] One-to-many relationships (e.g., parent → multiple children)
+  - [ ] One-to-many relationships (e.g., parent -> multiple children)
   - [ ] Mixed null/non-null values for same entity
   - [ ] Empty arrays, single-item arrays
 - **Mocking:** MSW/light stubs as needed
@@ -62,22 +62,22 @@ Exact scope for this task. State what **is** and **is not** included.
 
 - To run ts files, use npx tsx
 
-### Manual Test — AC-1 (Happy)
+### Manual Test - AC-1 (Happy)
 
-1. Step…
-2. Step…
-   **Expected:** …
+1. Step...
+2. Step...
+   **Expected:** ...
 
-### Manual Test — AC-1 (Error)
+### Manual Test - AC-1 (Error)
 
-1. Step…
-2. Step…
-   **Expected:** …
+1. Step...
+2. Step...
+   **Expected:** ...
 
 ### Regression (key flows)
 
-- Flow 1: steps → expected
-- Flow 2: steps → expected
+- Flow 1: steps -> expected
+- Flow 2: steps -> expected
 
 ## Steps (risk-first)
 

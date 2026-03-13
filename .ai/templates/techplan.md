@@ -1,6 +1,7 @@
 ---
-schema: ai/techplan@2
+schema: ai/techplan@3
 jira: <JIRA-ID>
+plan_ready: <READY|NOT_READY>
 updatedAt: <ISO8601>
 ---
 
@@ -12,8 +13,17 @@ updatedAt: <ISO8601>
 
 ## Tasks (INVEST, short)
 
-- <JIRA>-1: <title> (AC-1) → files, routes
-- <JIRA>-2: <title> (AC-2) → files, routes
+- <JIRA>-1: <title> (AC-1) -> files, routes
+- <JIRA>-2: <title> (AC-2) -> files, routes
+
+## Open Questions
+
+> Log anything uncertain, ambiguous, or inferred without direct evidence. Tag each question.
+> `[BLOCKER]` = blocks task creation or implementation. `[INFO]` = needs clarification for quality/completeness.
+> ALL questions (both BLOCKER and INFO) must be resolved before implementation starts (Gate DP-03).
+
+- `[BLOCKER] OQ-1:` ...
+- `[INFO] OQ-2:` ...
 
 ## Risks / Dependencies
 
@@ -27,10 +37,10 @@ updatedAt: <ISO8601>
 
 - [ ] **Timezone handling**: Document behavior in UTC-5, UTC+8, etc.
   - Test strategy: Set `process.env.TZ` in tests or use timezone-aware utilities
-  - Expected: Does code need to preserve dates regardless of timezone? If YES → use local date parsing
+  - Expected: Does code need to preserve dates regardless of timezone? If YES -> use local date parsing
 - [ ] **Date-only vs DateTime**: Is this a date-only field that should ignore time/timezone?
-  - If DATE-ONLY → Use local date parsing (e.g., `new Date(year, month, day)`)
-  - If DATETIME → Document expected timezone behavior explicitly
+  - If DATE-ONLY -> Use local date parsing (e.g., `new Date(year, month, day)`)
+  - If DATETIME -> Document expected timezone behavior explicitly
 - [ ] **ISO string format variations**: Test both `"2025-10-30"` and `"2025-10-30T00:00:00Z"`
 - [ ] **DST boundaries**: If applicable, test daylight saving time transitions
 
@@ -53,7 +63,7 @@ Edge-Timezone-1: User in UTC-3 loads record with date "2025-10-30T00:00:00Z"
 ## Validation Plan
 
 - Local tests + `pnpm check`
-- Routes to test: [/..., /resource-management?...]
+- Routes to test: [/..., /feature-management?...]
 
 ## API Docs
 
@@ -92,7 +102,7 @@ Example:
 - Timezone handling: TIMEZONE-AGNOSTIC (date should be same in all timezones)
 - Format(s): ISO string ("2025-10-30T00:00:00Z") or Date object
 - Parsing strategy: Extract date portion only, parse as local date: new Date(year, month-1, day)
-- Rationale: Record dates represent "as of" dates that should display consistently regardless of user location
+- Rationale: Record dates should display consistently regardless of user location
 ```
 
 **Data Aggregation Logic** (if applicable):
@@ -100,7 +110,7 @@ Example:
 - **Deduplication Required:** <Yes/No>
 - **Aggregation Strategy:** <first-wins / last-wins / prefer-non-null / merge / error-on-conflict>
 - **Duplicate Key Handling:**
-  - Key field(s): <e.g., `entity_id`>
-  - Scenario: <e.g., "Same entity with multiple detail types, mixed values">
-  - Resolution: <e.g., "Use first non-null value">
+  - Key field(s): <e.g., `entity_code`>
+  - Scenario: <e.g., "Same entity with multiple detail rows, mixed values">
+  - Resolution: <e.g., "Use first non-null sort value">
 - **Edge Case - Conflicting Values:** <How to handle if same key has different non-null values?>

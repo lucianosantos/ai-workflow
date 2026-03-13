@@ -1,0 +1,35 @@
+---
+description: "Standards for API integration and mock data"
+globs: ["**/service/**", "**/mocks/**"]
+---
+
+For full API and mock standards, read `.ai/standards/api-and-mocks.md`. Below are the critical rules.
+
+## API Integration
+- When working on API integrations, also create/update mocks to prevent drift
+- Type-safe API comms with centralized error handling
+- Use the repository's standard service-layer patterns
+
+## Mock Data
+- Use **faker** (or the repo's equivalent fake-data library) for generating fake values:
+  - `faker.string.uuid()`, `faker.finance.currencyName()`, `faker.number.int({ min, max })`
+  - Infer unspecified values from the fake-data API
+- **Ephemeral list pattern** for CRUD mocks - changes persist in browser session, refresh resets
+  - Keep the pattern aligned with an existing CRUD reference in the repo
+
+## Service Call Patterns
+- **Reactive parameters**: Manual `execute()` with current `.value`
+  ```typescript
+  // Correct
+  const getData = () => execute({ param: reactiveParam.value });
+  // Wrong - captures stale value
+  const { execute } = service.get({ params: { param: ref.value } });
+  ```
+
+## revision_id
+- Concurrency control property - follow an existing reference pattern in the repo
+- Always refresh after saves to sync `revision_id`
+
+## Deep Reference
+- Full API & mock standards: `.ai/standards/api-and-mocks.md`
+- CRUD patterns: `.ai/standards/crud.md`

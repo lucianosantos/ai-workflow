@@ -7,7 +7,7 @@
 ```md
 ## Related Issue
 
-- [TASK-XXXX](https://your-domain.atlassian.net/browse/TASK-XXXX)
+- [JIRA-XXXX](<issue-tracker-url>)
 
 ## Changes
 
@@ -28,10 +28,10 @@
 - Be specific on tests, with steps and substeps.
 - The list below is an example. You can create more numbers or subnumbers inside a number to describe the steps for tests.
 
-1. [nav path] → [expected result]
-2. [action] → [expected]
-3. [edge case] → [expected handling]
-4. [regression check] → [unchanged behavior]
+1. [nav path] -> [expected result]
+2. [action] -> [expected]
+3. [edge case] -> [expected handling]
+4. [regression check] -> [unchanged behavior]
 
 E.g.:
 
@@ -50,10 +50,10 @@ E.g.:
 
 ## Notes (optional)
 
-- [deploy notes/follow‑ups if any]
+- [deploy notes/follow-ups if any]
 
 ## Writing Rules
 
-✅ Be specific, technical, step‑wise.
-❌ No verbose rationale/marketing; no “Files Modified” (git diff shows it).
+Do be specific, technical, step-wise.
+Don't add verbose rationale/marketing or a "Files Modified" section (git diff shows it).
 ```

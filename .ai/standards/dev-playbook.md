@@ -32,7 +32,7 @@
 
 ---
 
-## 3) Vitest (unit) — minimal rules
+## 3) Vitest (unit) - minimal rules
 
 - Co-locate tests: `*.spec.ts` next to the unit under test.
 - Keep tests **fast and focused** on the unit (no e2e/contract yet).
@@ -68,22 +68,22 @@ Document steps **inside the Task file**, mapped to BizSpec ACs.
 **Template**
 
 ```md
-### Manual Test — AC-1 (Happy)
+### Manual Test - AC-1 (Happy)
 
-1. Step…
-2. Step…
-   **Expected:** …
+1. Step...
+2. Step...
+   **Expected:** ...
 
-### Manual Test — AC-1 (Error)
+### Manual Test - AC-1 (Error)
 
-1. Step…
-2. Step…
-   **Expected:** …
+1. Step...
+2. Step...
+   **Expected:** ...
 
 ### Regression (key flows)
 
-- Flow 1: steps → expected
-- Flow 2: steps → expected
+- Flow 1: steps -> expected
+- Flow 2: steps -> expected
 ```
 
 ---
@@ -101,7 +101,7 @@ Document steps **inside the Task file**, mapped to BizSpec ACs.
 ## 6) Common failures to avoid
 
 - Inventing a new pattern when a reference exists.
-- “Assumption coding” (implementing without answered blockers).
+- "Assumption coding" (implementing without answered blockers).
 - Drive-by refactors mixed into feature commits.
 - Silent drift from BizSpec/Tech Plan.
 - Merging without executing the manual test checklist.
@@ -111,6 +111,6 @@ Document steps **inside the Task file**, mapped to BizSpec ACs.
 
 ## 7) When to pause and escalate
 
-- A **BLOCKER** from BizSpec affects your task → stop, comment on the Task, and tag the owner.
-- A required reference pattern doesn’t exist → ask for one or propose a small RFC.
-- A test requires external services you can’t mock trivially → note limitation, add a TODO for future contract/e2e, and keep unit scope.
+- A **BLOCKER** from BizSpec affects your task -> stop, comment on the Task, and tag the owner.
+- A required reference pattern doesn't exist -> ask for one or propose a small RFC.
+- A test requires external services you can't mock trivially -> note limitation, add a TODO for future contract/e2e, and keep unit scope.

@@ -1,11 +1,13 @@
 # Mode: GitOps (GIT)
 
+**Recommended model**: Claude Sonnet 4.6
+
 **Purpose**  
 Create reviewed, traceable Merge Requests (MRs) with strict previews and confirmations. No merges or force-pushes by the agent.
 
 **Triggers**
 
-- User says: `GIT:` …, “create MR for <JIRA-ID>”, “open MR”, “prepare MR body”, or asks for branch/commit/push with preview.
+- User says: `GIT:` ..., "create MR for <JIRA-ID>", "open MR", "prepare MR body", or asks for branch/commit/push with preview.
 
 **Global safety (inherits router rules)**
 
@@ -14,8 +16,8 @@ Create reviewed, traceable Merge Requests (MRs) with strict previews and confirm
 
 **Global git settings**
 
-- **GitLab MCP only**: Use ONLY GitLab MCP for ALL git and MR operations (branches, commits, push, MR creation, status checks).
-- **Never use GitKraken MCP**: GitKraken MCP is disabled for this project - use GitLab MCP exclusively.
+- **Use one approved git/MR MCP consistently**: Use ONLY GitLab MCP for ALL git and MR operations (branches, commits, push, MR creation, status checks).
+- **Never use alternative git providers**: alternative git providers is disabled for this project - use GitLab MCP exclusively.
 
 **Preconditions**
 
@@ -28,12 +30,12 @@ Create reviewed, traceable Merge Requests (MRs) with strict previews and confirm
 
 ## 1) Branches
 
-- **Name:** `{feat|fix|task}/<project-name>-<JIRA-ID>-<kebab-title>` (≤ 100 chars).
-- **Base:** `origin/master` (or repo default branch if different).
+- **Name:** `{feat|fix|task}/proj-<JIRA-ID>-<kebab-title>` (<= 100 chars).
+- **Base:** `origin/<default-branch>` (or repo default branch if different).
 - **Flow:**
   1. Derive `<kebab-title>` from Jira title.
-  2. Confirm → `git checkout -b {branch} origin/master`.
-  3. After first commit, confirm → `git push -u origin {branch}`.
+  2. Confirm -> `git checkout -b {branch} origin/<default-branch>`.
+  3. After first commit, confirm -> `git push -u origin {branch}`.
 
 > These mirror your Git rules. Keep human approval on every write op.  
 > Allowed ops (with confirmation): create local branches/commits, push branches, create MRs, read repo info. **Forbidden:** merges, force-pushes. (Source workflow)
@@ -42,11 +44,11 @@ Create reviewed, traceable Merge Requests (MRs) with strict previews and confirm
 
 ## 2) Commits
 
-- **Format:** `type: description` (first line ≤ 100 chars; lowercase after colon).  
-  Examples: `fix: prevent invalid foo combo`, `feat: enable autosize for feature grid`, `task: upgrade ag-grid to v32`.
+- **Format:** `type: description` (first line <= 100 chars; lowercase after colon).  
+  Examples: `fix: prevent invalid allocations combo`, `feat: enable autosize for feature grid`, `task: upgrade ag-grid to v32`.
 - **Flow:**
   1. Stage changes.
-  2. Preview exact commit message and ask: “Commit with message: `<msg>`?”
+  2. Preview exact commit message and ask: "Commit with message: `<msg>`?"
   3. Run commit only after approval.
 
 ---
@@ -61,7 +63,7 @@ Create reviewed, traceable Merge Requests (MRs) with strict previews and confirm
 **Build**
 
 1. Parse `output.md` and map its sections into the MR template.
-2. **Title format:** `{type}: {jira in lowercase (<project-name>-1234)} {concise summary}` (≤ 100 chars).
+2. **Title format:** `{type}: {jira in lowercase (proj-1234)} {concise summary}` (<= 100 chars).
 3. Render **Title + Description** (Markdown) using the template.
 4. **MR Description Rules**:
    - **Changes section**: Write at macro/feature level (what capability was added), NOT task-by-task implementation details
@@ -72,8 +74,8 @@ Create reviewed, traceable Merge Requests (MRs) with strict previews and confirm
 **Preview & Confirmation (hard gate)**
 
 - Show the **exact** Title and the full Description (Markdown) to the user:
-  - “Create MR with this Title and Description?”
-- **Only** create the MR after explicit “yes”.
+  - "Create MR with this Title and Description?"
+- **Only** create the MR after explicit "yes".
 
 **Create MR**
 
@@ -84,9 +86,9 @@ Create reviewed, traceable Merge Requests (MRs) with strict previews and confirm
   2. Extract usernames (exclude yourself if listed)
   3. Get user IDs via `gitlab_get_users` for each username
   4. Pass reviewer IDs to `reviewerIds` parameter as array
-  5. If CODEOWNERS is empty or missing → **stop and ask user** to update CODEOWNERS before creating MR
+  5. If CODEOWNERS is empty or missing -> **stop and ask user** to update CODEOWNERS before creating MR
 - Post **one** Jira comment with the MR link, message:
-  - “MR created: [{link}]({link})” (no extra comments, no spam).
+  - "MR created: [{link}]({link})" (no extra comments, no spam).
 
 **Post-create checks**
 
@@ -97,7 +99,7 @@ Create reviewed, traceable Merge Requests (MRs) with strict previews and confirm
 
 ## 4) Checklists (must be true before MR)
 
-- [ ] Branch/commit naming valid; first lines ≤ 100 chars.
+- [ ] Branch/commit naming valid; first lines <= 100 chars.
 - [ ] Lint/typecheck pass; scope tight; dead code removed.
 - [ ] **Changes**, **Impact Analysis**, **How to Test** present in `output.md`.
 - [ ] **MR Title + Description previewed and user approved.**

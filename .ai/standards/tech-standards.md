@@ -1,22 +1,18 @@
-# Technical Standards
+# Technical Standards Router
 
-## Always
+> This file routes you to the correct standards based on what you're working on.  
+> `core.md` is always required. Others are context-specific.
 
-**read** /.ai/standards/core.md
+## Always read first
 
-## If working with APIs or mocks
+- `.ai/standards/core.md` - architecture, coding, quality standards
 
-**read** /.ai/standards/api-and-mocks.md
+## Context-specific (read when applicable)
 
-## If working with CRUDs
-
-**read** /.ai/standards/api-and-mocks.md  
-**read** /.ai/standards/crud.md
-
-## For pattern-based development
-
-**read** /.ai/standards/dev-playbook.md
-
-## For unit testing
-
-**read** /.ai/standards/test-playbook.md
+| Working on              | Read                                                       |
+| ----------------------- | ---------------------------------------------------------- |
+| APIs or mocks           | `.ai/standards/api-and-mocks.md`                           |
+| CRUD operations         | `.ai/standards/crud.md` + `.ai/standards/api-and-mocks.md` |
+| Unit tests              | `.ai/standards/test-playbook.md`                           |
+| Implementation patterns | `.ai/standards/dev-playbook.md`                            |
+| API data models         | `.ai/standards/data-model-checklist.md`                    |

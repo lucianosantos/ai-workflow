@@ -1,0 +1,41 @@
+---
+description: "Coding standards and conventions for Vue/TS code files"
+globs: ["**/*.vue", "**/*.ts"]
+---
+
+For full standards reference, read `.ai/standards/tech-standards.md` which points to the relevant standard files. Below are the critical rules to follow for every code change.
+
+## Component Standards
+- **Design-system-first**: Use the project's shared button, input, grid, and similar components - NEVER default to raw HTML elements when a shared component already exists
+- **Research method**: Use approved UI docs or MCP tools for component docs - NEVER grep `node_modules` as the primary API reference
+- Use design tokens, not hardcoded styles
+- Accessibility: ARIA + keyboard navigation
+
+## Vue Patterns
+- **`computed` for derived state**, `watch` only for side effects (logging, API calls, DOM updates)
+- **Data fetching in parents**: Pages own service calls, pass data as props to children
+- Feature-based organization: `src/components/{feature}/`
+- Type safety: no `any`, typed props/events/interfaces
+- Self-documenting names over comments
+
+## Service Patterns
+- **Reactive parameters**: Manual `execute()` with current `.value` - don't capture stale refs
+- **Post-operation grid**: `await nextTick()` then `forEachNode()` - never target rows too early after updates
+
+## AG-Grid
+- Priority: GridOptions -> defaultColDef -> columnDefs -> API calls (last resort)
+- Column sizing: content -> minWidth (autosize), utility -> fixed width
+- No `setTimeout` hacks, no imperative sizing on mounted
+
+## Principles
+- **DRY**: Extract shared logic, no copy-paste
+- **KISS**: Prefer simple, readable solutions
+- **YAGNI**: Only build what's needed
+- No hardcoded values - use constants/config
+- Extract shared logic into composables (`src/composables/`)
+
+## Deep References
+- Architecture & full standards: `.ai/standards/core.md`
+- API & mock patterns: `.ai/standards/api-and-mocks.md`
+- CRUD patterns: `.ai/standards/crud.md`
+- Implementation discipline: `.ai/standards/dev-playbook.md`

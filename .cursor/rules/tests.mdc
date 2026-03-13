@@ -1,0 +1,50 @@
+---
+description: "Testing conventions and patterns for spec files"
+globs: ["**/*.spec.ts"]
+---
+
+For full testing standards, read `.ai/standards/test-playbook.md`. Below are the critical rules for every test file.
+
+## Scope & Focus
+- **Test YOUR business logic**, not framework/library behavior
+- **Skip**: Column existence checks, component registration, mocked helper internals
+- **Focus**: Value transformations, business rules, edge cases in YOUR code
+
+## Test Naming
+- Use **plain English** describing behavior: `"should accept valid value within range and return true"`
+- **No AC/EC IDs** in test descriptions - those map to task checklists, not test files
+
+## Structure
+- **Co-locate**: `Component.vue` -> `Component.spec.ts`
+- **Arrange-Act-Assert** pattern in every test
+- ~1-3 tests per behavior: Happy path + edge cases
+
+## Key Rules
+- **Literal expected values**: `expect(result).toBe("2025-10-30")` - NEVER `expect(result).toBe(formatISO(date))`
+- **Mock shared UI dependencies** with the repository's common test mocks - don't create ad-hoc inline mocks if a shared mock already exists
+- **Never test mocked behavior** - if you mock it, you're testing your mock
+
+## Edge Case Checklist
+
+**Dates/times** (if code handles dates):
+- Test multiple timezones (UTC-5, UTC+0, UTC+10) using `process.env.TZ`
+- Test ISO format variations
+- Verify DATE-ONLY fields don't shift due to timezone conversion
+
+**Arrays/collections**:
+- Empty array, single-item, all null, mixed null/non-null, duplicate keys
+
+**Composables/reactivity**:
+- Initial state, state changes with `nextTick()`, cleanup on unmount
+
+## Validation
+- **Component-level**: Trust the shared component's built-in validation when that is the intended source of truth
+- **Business-level**: Own it, implement it, test it
+
+## Commands
+- Run once: `pnpm test:unit --run`
+- Watch mode: `pnpm test:unit`
+- Full check: `pnpm check`
+
+## Deep Reference
+- Full testing playbook: `.ai/standards/test-playbook.md`

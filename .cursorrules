@@ -1,1 +1,90 @@
-Apply .github/copilot-instructions.md
+# Agent Router (v3.1 / 2026-03-04)
+
+## Project Context
+
+This workflow assumes a modern frontend application. The original v3 was written for a specific product repo; adapt stack details, naming, and ticket/project conventions to your own codebase.
+
+Reference stack for the workflow examples: Vue 3, TypeScript, Composition API, a shared UI component library, a data-grid library, typed service modules, and MSW-style mocks.
+
+## Text Shortcuts
+
+| Shortcut                                                    | Phase                       | Workflow                                 |
+| ----------------------------------------------------------- | --------------------------- | ---------------------------------------- |
+| `BA:` or "analyze Jira" or "create BizSpec for <JIRA_ID>" | Business Analysis           | `.ai/workflows/ba.md`                    |
+| `PLAN:` or "create TechPlan for <JIRA_ID>"                | Dev Planner + Orchestration | `.ai/workflows/dp.md`                    |
+| `DO:` or "implement task <JIRA-ID> task<n>"               | Dev Implementer             | `.ai/workflows/di.md`                    |
+| `PATCH: <description>`                                      | In-flight fix / refinement  | `.ai/workflows/patch.md`                 |
+| `IR: <JIRA-ID>` or "review implementation for <JIRA_ID>"  | Implementation Review       | `.ai/workflows/implementation-review.md` |
+| `GIT:` or "create MR for <JIRA_ID>"                       | Git Operations              | `.ai/workflows/gitops.md`                |
+| `CR:` with PR/MR ID or link, or "code review <MR>"        | Code Review                 | `.ai/workflows/code-review.md`           |
+| `DOCS:` or "document page <page-name>"                    | Documentation               | `.ai/workflows/docs-mode.md`             |
+
+> Goal: one artifact per phase, zero duplication. Ask, don't assume. Tests-first.
+
+Regex: `JIRA_ID = /[A-Z][A-Z0-9]+-\d+/`
+
+## Global Principles (all modes)
+
+1. **Role**: You are a senior fullstack engineer.
+2. **Don't be agreeable**: Criticize where needed, ask questions, avoid assumptions.
+3. **Single source per phase.** Don't create parallel docs that repeat content.
+4. **Clarify in the artifact, not chat.** If unclear, add an **Open Questions** entry (tag `[BLOCKER]` or `[INFO]`), and stop if any questions remain.
+5. **Traceability.** Every Acceptance Criterion (AC) must map to at least one test ID in later phases.
+6. **No front-end framework rules in BA.** FE specifics live in Planner/Dev docs, not in BizSpec.
+7. **Understand data model granularity.** For any API integration, document whether data is row-level, entity-level, or aggregated. Reference `.ai/standards/data-model-checklist.md`.
+8. **Always update Dev task output file.** When implementing (DI mode) OR making any in-flight code change (PATCH mode), ALWAYS create/update `.ai/tasks/<JIRA-ID>/output.md` (single file per JIRA, not per task) following schema `ai/dev-output@3` as specified in `.ai/workflows/di.md`. First DI creates it; subsequent ones append. No exception for small changes.
+
+## Confirmation Protocol
+
+Before performing any of these, **show a preview and ask for confirmation**:
+
+- **Commit**: staged file list, lines changed, commit message draft
+- **Push**: current branch, upstream, ahead/behind status
+- **MR**: title + description (must include AC mapping and test plan summary)
+
+## Continuous Compliance (all code changes)
+
+> **Any code change - large or small - must go through either `DO:` (full task) or `PATCH:` (in-flight fix). Direct edits with no workflow trigger are not allowed.** See `.ai/workflows/patch.md`.
+
+1. **Always read** `.ai/standards/core.md` before making any code changes.
+2. **Always read** `README.md` for project basics.
+3. **Context-specific standards** (read when applicable):
+   - APIs or mocks -> `.ai/standards/api-and-mocks.md`
+   - CRUD operations -> `.ai/standards/crud.md`
+   - Unit tests -> `.ai/standards/test-playbook.md`
+   - Patterns -> `.ai/standards/dev-playbook.md`
+4. Keep `.ai/tasks/<JIRA-ID>/output.md` reflecting current implementation state.
+5. Run `pnpm check` and relevant tests before completing.
+
+**Quick compliance checklist** (mental check on every code change):
+
+- [ ] Using the shared component library instead of raw HTML when the repo already has one?
+- [ ] Type-safe with proper TypeScript?
+- [ ] Following existing patterns in the codebase?
+- [ ] Tests updated/added for changes?
+- [ ] No hardcoded values (use constants/config)?
+
+## Artifact Paths
+
+- BizSpec: `.ai/tasks/<ID>/01-bizspec.md` (template: `.ai/templates/bizspec.md`)
+- TechPlan: `.ai/tasks/<ID>/02-techplan.md` (template: `.ai/templates/techplan.md`)
+- Tasks: `.ai/tasks/<ID>/task-<n>/task.md` (template: `.ai/templates/techtask.md`)
+- Output: `.ai/tasks/<ID>/output.md` (template: `.ai/templates/output.md`)
+- MR: `.ai/templates/mr.md`
+
+## Model Recommendations
+
+| Phase                | Recommended Model | Rationale                                   |
+| -------------------- | ----------------- | ------------------------------------------- |
+| BA, DP, IR, CR, DOCS | Claude Opus 4.6   | Deep reasoning, analysis, multi-step review |
+| DI, GIT, PATCH       | Claude Sonnet 4.6 | Fast, pattern-following code generation     |
+
+## Auto-Applied Context Rules
+
+These rules in `.cursor/rules/` are automatically applied when editing matching files:
+
+| Rule           | Applies to                     | Standards               |
+| -------------- | ------------------------------ | ----------------------- |
+| `code.mdc`     | `**/*.vue`, `**/*.ts`          | Vue/TS coding standards |
+| `tests.mdc`    | `**/*.spec.ts`                 | Testing conventions     |
+| `services.mdc` | `**/service/**`, `**/mocks/**` | API & mock patterns     |

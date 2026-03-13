@@ -1,4 +1,3 @@
-````markdown
 # Data Model Checklist for API Integrations
 
 > **Purpose:** Prevent data model misunderstanding bugs by asking the right questions before integrating any API endpoint.
@@ -31,7 +30,7 @@ Before writing code, answer these questions in your **BizSpec** or **TechPlan**:
 
 - **Are there any 1:N relationships in the data?**
   - Can a single entity appear multiple times in the response?
-  - Example: One parent entity → multiple child records → one row per child
+  - Example: One parent entity -> multiple child records -> one row per child
 
 ### 3. Duplicate Keys
 
@@ -60,7 +59,7 @@ Before writing code, answer these questions in your **BizSpec** or **TechPlan**:
 **Symptom:** Map building code blindly overwrites values
 
 ```typescript
-// ❌ WRONG: Last row wins (overwrites previous values)
+// WRONG: Last row wins (overwrites previous values)
 const map = new Map<string, number>();
 for (const item of data) {
   map.set(item.key, item.value); // Overwrites if key already exists!
@@ -70,7 +69,7 @@ for (const item of data) {
 **Solution:** Define aggregation strategy
 
 ```typescript
-// ✅ CORRECT: Prefer non-null values
+// CORRECT: Prefer non-null values
 const map = new Map<string, number>();
 for (const item of data) {
   const existing = map.get(item.key);
@@ -85,7 +84,7 @@ for (const item of data) {
 **Symptom:** Tests use simplified 1:1 data, missing duplicate key scenarios
 
 ```typescript
-// ❌ WRONG: Test helper creates ONE row per entity
+// WRONG: Test helper creates ONE row per entity
 const createItem = (code: string, sort: number) => ({
   entity_id: code,
   detail_type: "DEFAULT",
@@ -96,10 +95,10 @@ const createItem = (code: string, sort: number) => ({
 **Solution:** Create realistic test data
 
 ```typescript
-// ✅ CORRECT: Test with multiple detail types per entity
+// CORRECT: Test with multiple detail types per entity
 const mockData = [
   { entity_id: "ENT-001", detail_type: "TYPE_A", sort_order: 10 },
-  { entity_id: "ENT-001", detail_type: "TYPE_B", sort_order: null }, // ← Duplicate!
+  { entity_id: "ENT-001", detail_type: "TYPE_B", sort_order: null },
 ];
 ```
 
@@ -120,14 +119,14 @@ const mockData = [
 
 When multiple rows exist for the same key, choose a strategy:
 
-| Strategy              | When to Use                                 | Example                                              |
-| --------------------- | ------------------------------------------- | ---------------------------------------------------- |
-| **First-wins**        | Rows are pre-sorted, first is authoritative | Use first timestamp, ignore later updates            |
-| **Last-wins**         | Most recent data is correct                 | Overwrite with latest value                          |
-| **Prefer-non-null**   | Sparse data, nulls are "no data"            | Use first non-null value encountered                 |
-| **Merge**             | Combine data from multiple rows             | Aggregate arrays, sum numbers, union sets            |
-| **Error-on-conflict** | Duplicates are a bug                        | Throw error if non-null values differ                |
-| **Max/Min**           | Numeric data, need extreme value            | Use highest/lowest value                             |
+| Strategy              | When to Use                                 | Example                                   |
+| --------------------- | ------------------------------------------- | ----------------------------------------- |
+| **First-wins**        | Rows are pre-sorted, first is authoritative | Use first timestamp, ignore later updates |
+| **Last-wins**         | Most recent data is correct                 | Overwrite with latest value               |
+| **Prefer-non-null**   | Sparse data, nulls are "no data"          | Use first non-null value encountered      |
+| **Merge**             | Combine data from multiple rows             | Aggregate arrays, sum numbers, union sets |
+| **Error-on-conflict** | Duplicates are a bug                        | Throw error if non-null values differ     |
+| **Max/Min**           | Numeric data, need extreme value            | Use highest/lowest value                  |
 
 **Document your strategy in the TechPlan!**
 
@@ -161,8 +160,30 @@ When multiple rows exist for the same key, choose a strategy:
    - Very long strings
 
 5. **Multi-tier relationships** (if applicable)
-   - Parent → Children → Grandchildren
+   - Parent -> Children -> Grandchildren
    - Test cascade effects
+
+### Example: Entity Attributes Mock Data
+
+```typescript
+// GOOD: Covers multiple scenarios
+export const mockEntityAttributes = [
+  // Scenario 1: Entity with multiple detail rows, mixed sort values
+  { entity_id: "ENT-001", detail_type: "TYPE_A", sort_order: 10 },
+  { entity_id: "ENT-001", detail_type: "TYPE_B", sort_order: null },
+
+  // Scenario 2: Entity with all nulls
+  { entity_id: "NULL-ENTITY", detail_type: "TYPE_A", sort_order: null },
+  { entity_id: "NULL-ENTITY", detail_type: "TYPE_B", sort_order: null },
+
+  // Scenario 3: Simple case
+  { entity_id: "SIMPLE", detail_type: "TYPE_A", sort_order: 5 },
+
+  // Scenario 4: Conflicting non-null values (if applicable)
+  // { entity_id: "CONFLICT", detail_type: "TYPE_A", sort_order: 10 },
+  // { entity_id: "CONFLICT", detail_type: "TYPE_B", sort_order: 20 }, // <- Should error or merge?
+];
+```
 
 ---
 
@@ -183,4 +204,37 @@ When a data model bug is found, document it here:
 - [Aggregation strategy chosen]
 - [Tests added to cover the scenario]
 
-````
+---
+
+## Integration with Dev Process
+
+1. **BA Phase (BizSpec):** Fill "Data Model & Assumptions" section
+
+   - Document endpoint granularity
+   - Flag one-to-many relationships
+
+2. **Planner Phase (TechPlan):** Specify "Data Aggregation Logic"
+
+   - Choose aggregation strategy
+   - Document duplicate key handling
+
+3. **Dev Phase (Task):** Test data structure edges
+
+   - Include duplicate keys in Vitest specs
+   - Execute manual tests with multi-row scenarios
+
+4. **Gate Enforcement:** Gate DP-02 blocks planning if aggregation logic is missing for array-returning APIs
+
+---
+
+## Quick Reference Checklist
+
+Before coding any API integration:
+
+- [ ] Documented endpoint granularity (row-level vs entity-level)
+- [ ] Identified one-to-many relationships (if any)
+- [ ] Defined aggregation strategy for duplicate keys
+- [ ] Created test data with duplicate keys/nulls
+- [ ] Added Vitest specs for data structure edges
+- [ ] Manual test includes multi-row scenarios
+- [ ] Aggregation logic documented in TechPlan
